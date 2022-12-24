@@ -1,8 +1,13 @@
+#Importing necessary files for graphics interface and model
 import tkinter as tk
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
+import os
+import cv2
+import numpy as np
 
 class App():
     def __init__(self, root):
@@ -16,7 +21,7 @@ class App():
         pass
     def reset_button_pushed(self): #Called when reset pushed
         self.canvas.delete('all')
-        self.canvas.create_image()
+        #self.canvas.create_image()
     def create_buttons(self):
         self.ok_button = tk.Button(root, text='OK', font='Arial 24', \
                               bg='Yellow', width=15, command = self.ok_button_pushed)
@@ -52,7 +57,8 @@ class App():
         # Compile model
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         return model
-    def run_digit(self):
+    
+    def train__test_model(self):
         # load data
         (X_train, y_train), (X_test, y_test) = mnist.load_data()
         # flatten 28*28 images to a 784 vector for each image
@@ -66,7 +72,6 @@ class App():
         y_train = to_categorical(y_train)
         y_test = to_categorical(y_test)
         num_classes = y_test.shape[1]
-
         # build the model
         model = baseline_model()
         # Fit the model
@@ -74,6 +79,20 @@ class App():
         # Final evaluation of the model
         scores = model.evaluate(X_test, y_test, verbose=0)
         print("Baseline Error: %.2f%%" % (100 - scores[1] * 100))
+
+    def read_predict_image(self):
+        image_number = 1
+        
+        while os.path.isfile(f"digits/digit{image_number}.png"):
+            img = cv2.imread(f"digits/digit{image_number}.png")[:,:,0]
+            img = np.invert(np.array([img]))
+
+            prediction = model.predict(img)
+            print(f"This is propably a {np.argmax(prediction)}")
+
+            plt.imshow(img[0], cmap= plt.cm.binary)
+            plt.show()
+            image_number += 1
 
 
 root = tk.Tk()
